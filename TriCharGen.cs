@@ -122,14 +122,9 @@ using System.Runtime.Serialization.Json;
                 Console.WriteLine("-- assign Sculpt to .tri files --");
 
                 float multiplier = 1.0f / slot.morphs.sculpt_divisor;
-                string nose_type = string.Format("NoseType{0}", slot.morphs.m_default.NoseType);
-                string eyes_type = string.Format("EyesType{0}", slot.morphs.m_default.EyesType);
-                string lip_type = string.Format("LipType{0}", slot.morphs.m_default.LipType);
-
                 Console.WriteLine("multiplier: {0}", multiplier);
-                Console.WriteLine("nose type: {0}", nose_type);
-                Console.WriteLine("eyes type: {0}", eyes_type);
-                Console.WriteLine("lip type: {0}", lip_type);
+
+                string preset_type = "NoseType32";
 
                 foreach (Morph morph in slot.morphs.sculpt)
                 {
@@ -156,11 +151,29 @@ using System.Runtime.Serialization.Json;
                         if (assigned)
                             continue;
 
-                        if (tri_morph.name == nose_type || tri_morph.name == eyes_type || tri_morph.name == lip_type)
+                        if (tri_morph.name == preset_type)
                         {
                             AssignPositions(tri_morph, morph, multiplier);
                             assigned = true;
                         }
+                    }
+
+                    // append new morph
+                    if (!assigned)
+                    {
+                        tridump.Morph tri_morph = new tridump.Morph(tri.num_positions);
+                        tri_morph.name = preset_type;
+                        tri_morph.positions = new tridump.Vector3[tri.num_positions];
+                        AssignPositions(tri_morph, morph, multiplier);
+
+                        tridump.Morph[] new_morphs = new tridump.Morph[tri.num_morphs+1];
+                        for (int i=0; i<tri.num_morphs; i++)
+                        {
+                            new_morphs[i] = tri.morphs[i];
+                        }
+                        new_morphs[tri.num_morphs] = tri_morph;
+                        tri.morphs = new_morphs;
+                        tri.num_morphs++;
                     }
 
                     // overwrite
@@ -187,23 +200,11 @@ using System.Runtime.Serialization.Json;
                 //Console.WriteLine("    v: {0} {1} {2} {3}", v[0], v[1], v[2], v[3]);
                 short i = v[0];
 
-                float x0 = tri_morph.positions[i].X * tri_morph.multiplier;
-                float y0 = tri_morph.positions[i].Y * tri_morph.multiplier;
-                float z0 = tri_morph.positions[i].Z * tri_morph.multiplier;
-
-                float x1 = v[1] * multiplier;
-                float y1 = v[2] * multiplier;
-                float z1 = v[3] * multiplier;
-
-                float x2 = x0 + x1;
-                float y2 = y0 + y1;
-                float z2 = z0 + z1;
-
-                tri_morph.positions[i].X = (short)(x2 * 10000);
-                tri_morph.positions[i].Y = (short)(y2 * 10000);
-                tri_morph.positions[i].Z = (short)(z2 * 10000);
+                tri_morph.positions[i].X = v[1];
+                tri_morph.positions[i].Y = v[2];
+                tri_morph.positions[i].Z = v[3];
             }
-            tri_morph.multiplier = 0.0001f;
+            tri_morph.multiplier = multiplier;
         }
 
         static void AssignZeroPositions(tridump.Morph tri_morph)
