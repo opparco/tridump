@@ -16,11 +16,11 @@ namespace tridump
 
     class Morph
     {
-        string name;
-        float multiplier;
-        Vector3[] positions;
+        public string name;
+        public float multiplier;
+        public Vector3[] positions;
 
-        int num_positions;
+        public int num_positions;
 
         public Morph(int num_positions)
         {
@@ -29,8 +29,14 @@ namespace tridump
 
         public void Dump()
         {
-            //Console.WriteLine("  name: {0} multiplier: {1:F8}", name, multiplier);
             Console.WriteLine("  name: {0}", name);
+#if false
+            Console.WriteLine("  multiplier: {0:F8}", multiplier);
+            for (int i=0; i<num_positions; i++)
+            {
+                Console.WriteLine("    v: {0} {1} {2} {3}", i, positions[i].X, positions[i].Y, positions[i].Z);
+            }
+#endif
         }
 
         // read SizedString
