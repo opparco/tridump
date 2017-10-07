@@ -250,7 +250,7 @@ namespace tridump
             {
                 tri.Load(tri_file);
                 tri.Dump();
-                tri.Save("out.tri");
+                //tri.Save("out.tri");
             }
             catch (FormatException ex)
             {
