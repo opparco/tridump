@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -7,21 +7,20 @@ using System.Threading.Tasks;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 
-/*
- * Update .tri files by RaceMenu Preset Sculpt
- */
+namespace trichargen
+{
     [DataContract]
     class Default
     {
         [DataMember]
         internal uint[] presets;
-        [DataMember(Name="morphs")]
+        [DataMember(Name = "morphs")]
         internal float[] sliders;
 
         // aliases
-        public uint NoseType    { get { return presets[0]; } }
-        public uint EyesType    { get { return presets[2]; } }
-        public uint LipType     { get { return presets[3]; } }
+        public uint NoseType { get { return presets[0]; } }
+        public uint EyesType { get { return presets[2]; } }
+        public uint LipType { get { return presets[3]; } }
 
         public void Dump()
         {
@@ -59,7 +58,7 @@ using System.Runtime.Serialization.Json;
         internal short[][] data;
         [DataMember]
         internal string host;
-        [DataMember(Name="vertices")]
+        [DataMember(Name = "vertices")]
         internal short num_positions;
 
         public void Dump()
@@ -70,11 +69,11 @@ using System.Runtime.Serialization.Json;
     [DataContract]
     class Morphs
     {
-        [DataMember(Name="default")]
+        [DataMember(Name = "default")]
         internal Default m_default;
         [DataMember]
         internal Morph[] sculpt;
-        [DataMember(Name="sculptDivisor")]
+        [DataMember(Name = "sculptDivisor")]
         internal short sculpt_divisor;
 
         public void Dump()
@@ -100,13 +99,14 @@ using System.Runtime.Serialization.Json;
             morphs.Dump();
         }
     }
+
     class Program
     {
         static void Main(string[] args)
         {
             if (args.Length != 1)
             {
-                System.Console.WriteLine("Usage: TriCharGen <source file>");
+                System.Console.WriteLine("Usage: trichargen <source file>");
                 return;
             }
 
@@ -135,7 +135,7 @@ using System.Runtime.Serialization.Json;
                         continue;
                     }
 
-                    tridump.triFile tri = new tridump.triFile();
+                    tridump.TriFile tri = new tridump.TriFile();
                     Console.WriteLine("Load {0}", tri_file);
                     tri.Load(tri_file);
 
@@ -166,8 +166,8 @@ using System.Runtime.Serialization.Json;
                         tri_morph.positions = new tridump.Vector3[tri.num_positions];
                         AssignPositions(tri_morph, morph, multiplier);
 
-                        tridump.Morph[] new_morphs = new tridump.Morph[tri.num_morphs+1];
-                        for (int i=0; i<tri.num_morphs; i++)
+                        tridump.Morph[] new_morphs = new tridump.Morph[tri.num_morphs + 1];
+                        for (int i = 0; i < tri.num_morphs; i++)
                         {
                             new_morphs[i] = tri.morphs[i];
                         }
@@ -206,16 +206,5 @@ using System.Runtime.Serialization.Json;
             }
             tri_morph.multiplier = multiplier;
         }
-
-        static void AssignZeroPositions(tridump.Morph tri_morph)
-        {
-            Console.WriteLine("  assign zero positions. morph name: {0}", tri_morph.name);
-
-            for (int i=0; i<tri_morph.num_positions; i++)
-            {
-                tri_morph.positions[i].X = 0;
-                tri_morph.positions[i].Y = 0;
-                tri_morph.positions[i].Z = 0;
-            }
-        }
     }
+}

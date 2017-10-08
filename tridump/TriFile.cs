@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -70,7 +70,7 @@ namespace tridump
 
             this.positions = new Vector3[num_positions];
 
-            for (int pi=0; pi<num_positions; pi++)
+            for (int pi = 0; pi < num_positions; pi++)
             {
                 ReadVector3(reader, out this.positions[pi]);
             }
@@ -97,14 +97,14 @@ namespace tridump
             WriteSizedString(writer, this.name);
             writer.Write(this.multiplier);
 
-            for (int pi=0; pi<num_positions; pi++)
+            for (int pi = 0; pi < num_positions; pi++)
             {
                 Write(writer, ref this.positions[pi]);
             }
         }
     }
 
-    class triFile
+    class TriFile
     {
         readonly byte[] magic_expect = System.Text.Encoding.ASCII.GetBytes("FRTRI003");
 
@@ -141,7 +141,7 @@ namespace tridump
             BinaryReader reader = new BinaryReader(source_stream, System.Text.Encoding.Default);
 
             byte[] magic = reader.ReadBytes(0x08);
-            for (int i=0; i<8; i++)
+            for (int i = 0; i < 8; i++)
                 if (magic[i] != magic_expect[i])
                     throw new FormatException("File is not tri!");
 
@@ -168,7 +168,7 @@ namespace tridump
 
             this.morphs = new Morph[num_morphs];
 
-            for (int mi=0; mi<num_morphs; mi++)
+            for (int mi = 0; mi < num_morphs; mi++)
             {
                 morphs[mi] = new Morph(num_positions);
                 morphs[mi].Read(reader);
@@ -189,7 +189,7 @@ namespace tridump
             Console.WriteLine("#extend morphs: {0}", num_extend_morphs);
 
             Console.WriteLine("Morphs:");
-            for (int mi=0; mi<num_morphs; mi++)
+            for (int mi = 0; mi < num_morphs; mi++)
                 morphs[mi].Dump();
         }
 
@@ -226,35 +226,9 @@ namespace tridump
             writer.Write(this.bin_texcoords);
             writer.Write(this.bin_texcoord_indices);
 
-            for (int mi=0; mi<num_morphs; mi++)
+            for (int mi = 0; mi < num_morphs; mi++)
             {
                 morphs[mi].Write(writer);
-            }
-        }
-    }
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            if (args.Length != 1)
-            {
-                System.Console.WriteLine("Usage: tridump <tri file>");
-                return;
-            }
-
-            string tri_file = args[0];
-
-            triFile tri = new triFile();
-            try
-            {
-                tri.Load(tri_file);
-                tri.Dump();
-                //tri.Save("out.tri");
-            }
-            catch (FormatException ex)
-            {
-                Console.WriteLine("Failed to load. Reason: {0}", ex.Message);
             }
         }
     }
