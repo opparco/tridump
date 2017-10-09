@@ -80,6 +80,9 @@ namespace trichargen
         {
             m_default.Dump();
 
+            if (sculpt == null)
+                return;
+
             Console.WriteLine("Sculpt .tri files:");
             foreach (Morph morph in sculpt)
             {
