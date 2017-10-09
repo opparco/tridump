@@ -122,6 +122,9 @@ namespace trichargen
                 RaceMenuSlot slot = (RaceMenuSlot)serializer.ReadObject(stream);
                 slot.Dump();
 
+                if (slot.morphs.sculpt == null)
+                    return;
+
                 Console.WriteLine("-- assign Sculpt to .tri files --");
 
                 float multiplier = 1.0f / slot.morphs.sculpt_divisor;
