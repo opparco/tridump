@@ -127,7 +127,11 @@ namespace trichargen
                 float multiplier = 1.0f / slot.morphs.sculpt_divisor;
                 Console.WriteLine("multiplier: {0}", multiplier);
 
+                string origin_type = string.Format("NoseType{0}", slot.morphs.m_default.NoseType);
                 string preset_type = "NoseType32";
+
+                Console.WriteLine("origin type: {0}", origin_type);
+                Console.WriteLine("preset type: {0}", preset_type);
 
                 foreach (Morph morph in slot.morphs.sculpt)
                 {
@@ -139,10 +143,11 @@ namespace trichargen
                     }
 
                     tridump.TriFile tri = new tridump.TriFile();
-                    Console.WriteLine("Load {0}", tri_file);
+                    Console.WriteLine("updating {0}", tri_file);
                     tri.Load(tri_file);
 
-                    bool assigned = false;
+                    // find the morph of origin type
+                    tridump.Morph origin_tri_morph = null;
                     foreach (tridump.Morph tri_morph in tri.morphs)
                     {
                         if (tri_morph.num_positions != morph.num_positions)
@@ -151,23 +156,48 @@ namespace trichargen
                             continue;
                         }
 
-                        if (assigned)
-                            continue;
-
-                        if (tri_morph.name == preset_type)
+                        if (tri_morph.name == origin_type)
                         {
-                            AssignPositions(tri_morph, morph, multiplier);
-                            assigned = true;
+                            origin_tri_morph = tri_morph;
+                            break;
                         }
                     }
 
-                    // append new morph
-                    if (!assigned)
+                    // find the morph of preset type
+                    tridump.Morph preset_tri_morph = null;
+                    foreach (tridump.Morph tri_morph in tri.morphs)
                     {
+                        if (tri_morph.num_positions != morph.num_positions)
+                        {
+                            Console.WriteLine("error: #positions mismatch! {0} != {1}", tri_morph.num_positions, morph.num_positions);
+                            continue;
+                        }
+
+                        if (tri_morph.name == preset_type)
+                        {
+                            preset_tri_morph = tri_morph;
+                            break;
+                        }
+                    }
+
+                    if (preset_tri_morph != null)
+                    {
+                        if (origin_tri_morph != null)
+                            AssignPositions(preset_tri_morph, origin_tri_morph, morph, multiplier);
+                        else
+                            AssignPositions(preset_tri_morph, morph, multiplier);
+                    }
+                    else
+                    {
+                        // append new morph
                         tridump.Morph tri_morph = new tridump.Morph(tri.num_positions);
                         tri_morph.name = preset_type;
                         tri_morph.positions = new tridump.Vector3[tri.num_positions];
-                        AssignPositions(tri_morph, morph, multiplier);
+
+                        if (origin_tri_morph != null)
+                            AssignPositions(tri_morph, origin_tri_morph, morph, multiplier);
+                        else
+                            AssignPositions(tri_morph, morph, multiplier);
 
                         tridump.Morph[] new_morphs = new tridump.Morph[tri.num_morphs + 1];
                         for (int i = 0; i < tri.num_morphs; i++)
@@ -180,7 +210,6 @@ namespace trichargen
                     }
 
                     // overwrite
-                    Console.WriteLine("Save {0}", tri_file);
                     tri.Save(tri_file);
                 }
             }
@@ -194,13 +223,39 @@ namespace trichargen
             }
         }
 
+        static void AssignPositions(tridump.Morph tri_morph, tridump.Morph origin_tri_morph, Morph morph, float multiplier)
+        {
+            Console.WriteLine("  assign positions. morph name: {0}", tri_morph.name);
+
+            foreach (short[] v in morph.data)
+            {
+                short i = v[0];
+
+                float x0 = origin_tri_morph.positions[i].X * origin_tri_morph.multiplier;
+                float y0 = origin_tri_morph.positions[i].Y * origin_tri_morph.multiplier;
+                float z0 = origin_tri_morph.positions[i].Z * origin_tri_morph.multiplier;
+
+                float x1 = v[1] * multiplier;
+                float y1 = v[2] * multiplier;
+                float z1 = v[3] * multiplier;
+
+                float x2 = x0 + x1;
+                float y2 = y0 + y1;
+                float z2 = z0 + z1;
+
+                tri_morph.positions[i].X = (short)(x2 * 10000.0f);
+                tri_morph.positions[i].Y = (short)(y2 * 10000.0f);
+                tri_morph.positions[i].Z = (short)(z2 * 10000.0f);
+            }
+            tri_morph.multiplier = 0.0001f;
+        }
+
         static void AssignPositions(tridump.Morph tri_morph, Morph morph, float multiplier)
         {
             Console.WriteLine("  assign positions. morph name: {0}", tri_morph.name);
 
             foreach (short[] v in morph.data)
             {
-                //Console.WriteLine("    v: {0} {1} {2} {3}", v[0], v[1], v[2], v[3]);
                 short i = v[0];
 
                 tri_morph.positions[i].X = v[1];
